@@ -3,7 +3,7 @@
   --fg: #eef6ff;
   --muted: #a9b9cb;
   --accent: #70d4ff;
-  --scroll-length: 950vh;
+  --scroll-length: 950lvh;
 }
 
 * {
@@ -16,6 +16,7 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -36,7 +37,7 @@ a {
   top: 0;
   width: 100%;
   height: 100vh;
-  height: 100svh;
+  height: 100lvh;
   min-height: 560px;
   overflow: hidden;
   isolation: isolate;
@@ -183,6 +184,8 @@ a {
   position: absolute;
   z-index: 5;
   inset: 0;
+  perspective: 1400px;
+  transform-style: preserve-3d;
   pointer-events: none;
 }
 
@@ -196,6 +199,9 @@ a {
   opacity: 0;
   text-align: left;
   visibility: hidden;
+  transform-origin: center center;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
   will-change: transform, opacity;
 }
 
@@ -619,7 +625,7 @@ a {
 
 @media (max-width: 700px) {
   :root {
-    --scroll-length: 1050vh;
+    --scroll-length: 1050lvh;
   }
 
   .hero__stage {

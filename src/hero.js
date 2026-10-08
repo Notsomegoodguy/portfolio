@@ -4,7 +4,7 @@ const CONFIG = {
   frameCount: 162,                          // total number of frames
   framePath: i => `frames/ezgif-frame-${String(i).padStart(3, '0')}.jpg`, // i runs 1..frameCount
   textFadeEnd: 0.14,                       // fraction of hero scroll at which text is fully gone
-  smoothing: 0.2,                          // 0..1, higher = snappier, lower = silkier
+  smoothing: 0.04,                          // 0..1, higher = snappier, lower = silkier
   fit: 'cover',                             // 'cover' fills the screen; 'contain' shows whole frame
 };
 
@@ -128,18 +128,42 @@ const CONFIG = {
     for (const panel of panels) {
       const [start, end] = panelRanges[panel.dataset.panel];
       const fade = 0.025;
-      const opacity = Math.min(1, (p - start) / fade, (end - p) / fade);
-      const visible = opacity > 0.02;
       const entering = Math.max(0, Math.min(1, (p - start) / fade));
       const leaving = Math.max(0, Math.min(1, (end - p) / fade));
-      const offset = (1 - Math.min(entering, leaving)) * 24;
+      const easedEntry = entering * entering * (3 - 2 * entering);
+      const easedExit = leaving * leaving * (3 - 2 * leaving);
+      const reveal = Math.min(easedEntry, easedExit);
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const opacity = reducedMotion ? Math.min(entering, leaving) : reveal;
+      const visible = opacity > 0.02;
+      const offset = reducedMotion ? (1 - Math.min(entering, leaving)) * 24 : (1 - reveal) * 16;
+      const depth = reducedMotion ? 0 : (1 - reveal) * -620;
+      const scale = reducedMotion ? 1 : 0.72 + reveal * 0.28;
 
       panel.style.opacity = String(Math.max(0, opacity));
-      panel.style.transform = `translate3d(0, ${offset}px, 0)`;
+      panel.style.transform = `translate3d(0, ${offset}px, ${depth}px) scale(${scale})`;
       panel.style.visibility = visible ? 'visible' : 'hidden';
       panel.style.pointerEvents = visible ? 'auto' : 'none';
       panel.inert = !visible;
       panel.setAttribute('aria-hidden', String(!visible));
+
+      const staggeredElements = panel.querySelectorAll(':scope > *, .review-card, .blog-card, .stack-list span');
+      let cardIndex = 0;
+      staggeredElements.forEach((element, index) => {
+        let delay = index * 0.12;
+        if (element.matches('.review-card, .blog-card, .stack-list span')) {
+          delay = 0.2 + cardIndex * 0.08;
+          cardIndex++;
+        }
+
+        const localProgress = Math.max(0, Math.min(1, (reveal - delay) / (1 - delay)));
+        const easedProgress = localProgress * localProgress * (3 - 2 * localProgress);
+        const childDepth = reducedMotion ? 0 : (1 - easedProgress) * -260;
+        const childScale = reducedMotion ? 1 : 0.82 + easedProgress * 0.18;
+
+        element.style.opacity = reducedMotion ? '' : String(easedProgress);
+        element.style.transform = reducedMotion ? '' : `translate3d(0, 0, ${childDepth}px) scale(${childScale})`;
+      });
     }
 
     const [projectsStart, projectsEnd] = panelRanges.projects;
