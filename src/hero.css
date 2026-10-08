@@ -202,7 +202,6 @@ a {
   transform-origin: center center;
   transform-style: preserve-3d;
   backface-visibility: hidden;
-  will-change: transform, opacity;
 }
 
 .panel-heading {
